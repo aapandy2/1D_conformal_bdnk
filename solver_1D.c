@@ -1,38 +1,15 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <parameters.h>
 
 #ifndef M_PI
 #define M_PI           3.14159265358979323846
 #endif
 
-#define N (1*128+1)
-#define max_timestep (1*1024+1)
-#define TS_STEP (10)
-
-#define TOL (1e-14)
-
-#define GAUSSIAN     (11)
-#define SHOCK        (12)
-#define SMOOTH_SHOCK (17)
-#define ID_TYPE      (GAUSSIAN)
-
-#define GHOST (20)
-#define PERIODIC (21)
-#define BC (GHOST)
-
-#define epsW (1e-3)
-#define RECONST (WENO)
-
-#define DIREC "low/"
-
-/*choose number of time levels in array.  For Heun's method
-  we use 3, for SSPRK3 we use 4.  These can be implemented
-  in more memory-efficient ways, but we'll do the optimization
-  later */
+/*number of time levels stored in array; keep this at 3 */
 #define TL (3)
 
-double courant = 0.1;
 double dx;
 double dt;
 
@@ -60,9 +37,6 @@ double flux_xx[N];
 
 double Ttt_pv[N];
 double Ttx_pv[N];
-
-const double Gamma = 4./3.;
-const double beta = (2. - Gamma)/4.;
 
 /*define transport coefficients; eta0 hardcoded below
  * corresponds to KSS bound eta/s = 1/(4 pi) and 
@@ -212,7 +186,7 @@ int set_initial_data()
     double x_min = -200.;
     double x_max = 200.;
     dx = (x_max-x_min)/(N-1.);
-    dt  = courant * dx;
+    dt  = CFL * dx;
 
     /*define epsL, epsR, vL, vR for steady-state shocks */
     double epsL, epsR, vL, vR, vTemp, eps;
