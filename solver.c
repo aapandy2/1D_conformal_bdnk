@@ -47,6 +47,9 @@ double T_tx(double xi, double ux, double xicx, double uxcx, double xidot,
 double T_xx(double xi, double ux, double xicx, double uxcx, double xidot, 
             double uxdot);
 
+int save_x_to_file();
+int save_t_to_file();
+
 /*should return qL at x=i+1/2*/
 double WENO_reconst_qRx(double q[TL][N], int n, int i)
 {
@@ -228,6 +231,12 @@ int set_initial_data()
         xiP[0][i] = Dx(xi,0,i);
         uxP[0][i] = Dx(ux,0,i);
     }
+
+    //save x to a file called x.txt
+    save_x_to_file();
+
+    //save t to a file called t.txt
+    save_t_to_file();
 
     return 0;
 }
@@ -668,6 +677,48 @@ int output_arr(double arr[TL][N], char* filename_str, int n)
     for(int i=0; i<N; i+=GRID_SAMPLE_RATE_X)
     {
         fprintf(farr, "%e  ", arr[n][i]);
+    }
+    fprintf(farr, "\n");
+    fclose(farr);
+    strcpy(file_loc, DIREC);
+
+    return 0;
+}
+
+int save_x_to_file()
+{
+    int GRID_SAMPLE_RATE_X = 1;
+
+    char file_loc[100];
+    strcpy(file_loc, DIREC);
+
+    /*output arr to file*/
+    strcat(file_loc, "/x.txt");
+    FILE *farr = fopen(file_loc, "a");
+
+    for(int i=0; i<N; i+=GRID_SAMPLE_RATE_X)
+    {
+        fprintf(farr, "%e  ", x[i]);
+    }
+    fprintf(farr, "\n");
+    fclose(farr);
+    strcpy(file_loc, DIREC);
+
+    return 0;
+}
+
+int save_t_to_file()
+{
+    char file_loc[100];
+    strcpy(file_loc, DIREC);
+
+    /*output arr to file*/
+    strcat(file_loc, "/t.txt");
+    FILE *farr = fopen(file_loc, "a");
+
+    for(int n=0; n<MAX_TIMESTEP; n++)
+    {
+        fprintf(farr, "%e\n", n*dt);
     }
     fprintf(farr, "\n");
     fclose(farr);
