@@ -1,0 +1,12 @@
+# Simple solver for the conformal BDNK equations in slab symmetry
+
+## Alex Pandya
+## April 3, 2023
+
+## Instructions
+
+1. make the directory for datafiles (by default, this is a folder called "datafiles" in the same directory as the code): `mkdir datafiles`
+2. make the executable with `make`
+3. run the executable with `./1d_solver`
+4. datafiles will be saved in the specified folder; data is saved in plaintext with rows corresponding to the timestep and the column corresponding to the cell index (with zero indexing the cell at the smallest $x$ value)
+5. analyze the data (I use python/matplotlib)

@@ -83,6 +83,7 @@ const double chi0      = 25./4.*eta0;
 //directory to save the data files in.  Data is saved with a new
 //file for each variable being output, and data in the file is
 //arranged such that the nth row contains the variable at timestep n.
+//NOTE: this folder must already exist; if not, the code will segfault
 #define DIREC "low/"
 
 //tolerance below which we use perfect fluid primitive solve in a
