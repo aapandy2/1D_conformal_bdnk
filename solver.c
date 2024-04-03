@@ -415,7 +415,6 @@ double compute_xiD(int n, int i, double XI, double UX, double xiP, double uxP,
         dtt = 0.;
         dtx = 0.;
         eps = (-T00+sqrt(4.*pow(T00,2.)-3.*pow(T01,2.)));
-        //TODO: floor eps here?
         xi[n][i] = log(eps);
         ux[n][i] = 3.*T01/sqrt(pow(3.*T00+eps,2.)-pow(3.*T01,2.));
 
@@ -467,7 +466,6 @@ double compute_uxD(int n, int i, double XI, double UX, double xiP, double uxP,
         dtt = 0.;
         dtx = 0.;
         eps = (-T00+sqrt(4.*pow(T00,2.)-3.*pow(T01,2.)));
-        //TODO: floor eps here?
         xi[n][i] = log(eps);
         ux[n][i] = 3.*T01/sqrt(pow(3.*T00+eps,2.)-pow(3.*T01,2.));
     }
@@ -530,11 +528,6 @@ double Ttx_cx(int n, int i)
 
     double ans = (flux_iph-flux_imh)/dx;
 
-    //if(ans != ans)
-    //{
-    //    return 0.;
-    //}
-
     return ans;
 }
 
@@ -545,11 +538,6 @@ double Txx_cx(int n, int i)
 
     double ans = (flux_iph-flux_imh)/dx;
 
-    //if(ans != ans)
-    //{
-    //    return 0.;
-    //}
-
     return ans;
 }
 
@@ -559,9 +547,6 @@ int Heun_solve_system(int n)
     double xicx, uxcx;
     for(int i=3; i<N-3; i++)
     {
-        /*TODO: I think we can compute next iteration of solve_system's 
-                n+1 level, then we can push the epsD, uxD, uyD solve into 
-                this loop and get rid of the middle loop entirely */
         /*evolve Ttt, Ttx, Tty, Jt (predictor step) */
         Ttt[n+1][i] = (Ttt[n][i] + dt*( -Ttx_cx(n,i)
                                       ));
@@ -706,12 +691,6 @@ int print_to_file(int n)
     /*output residuals */
     compute_eps(n);
     output_arr(eps, "/eps.txt", n);
-    //t_res(n);
-    //output_arr(res, "/t_res.txt", n);
-    //x_res(n);
-    //output_arr(res, "/x_res.txt", n);
-    //compute_pitt(n);
-    //output_arr(res, "/pitt.txt", n);
 
     return 0;
 }
