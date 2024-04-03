@@ -1,12 +1,14 @@
 /* Simple solver for the conformal BDNK equations in slab symmetry.
  * 
  * Written by Alex Pandya, last updated 4/3/2024; numerical method
- * described in https://arxiv.org/abs/2201.12317
+ * described in:
+ * [1] https://arxiv.org/abs/2201.12317
  *
  * Choose options for the simulation in this file.
 * */
 
 /*============================define flags====================================*/
+//NOTE: no need to ever change the flags.
 
 //types of initial data
 #define GAUSSIAN     (11)                                                       
@@ -17,7 +19,19 @@
 #define GHOST (20)                                                              
 #define PERIODIC (21)
 
+//include math.h because we use pow() below; define pi if it's undefined
+#include <math.h>
+#ifndef M_PI
+#define M_PI (3.14159265358979323846)
+#endif
+
 /*============================set parameters==================================*/
+
+//specify hydrodynamic frame.  This is done according to [1] eqs (19-20).
+#define EPS0 (10.)
+const double eta0      = 1.*pow(EPS0,0.25)/(3.*M_PI);
+const double lambda0   = 25./7.*eta0;
+const double chi0      = 25./4.*eta0;
 
 //set simulation spatial resolution as RES_MULTIPLE*BASE_RESOLUTION.
 //for a convergence test, one should only change RES_MULTIPLE; cell

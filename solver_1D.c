@@ -3,10 +3,6 @@
 #include <string.h>
 #include <parameters.h>
 
-#ifndef M_PI
-#define M_PI           3.14159265358979323846
-#endif
-
 /*number of time levels stored in array; keep this at 3 */
 #define TL (3)
 
@@ -37,14 +33,6 @@ double flux_xx[N];
 
 double Ttt_pv[N];
 double Ttx_pv[N];
-
-/*define transport coefficients; eta0 hardcoded below
- * corresponds to KSS bound eta/s = 1/(4 pi) and 
- * eps0 = eps/T^4 ~ 10 is true for QGP */
-#define eps0 (10.)
-const double eta0      = 1.*pow(eps0,0.25)/(3.*M_PI);
-const double lambda0   = 25./7.*eta0;
-const double chi0      = 25./4.*eta0;
 
 double T_tt0(double xi, double ux, double xicx, double uxcx, double xidot, 
              double uxdot);
