@@ -12,7 +12,7 @@
 
 //types of initial data
 #define GAUSSIAN     (11)                                                       
-#define SHOCK        (12)                                                       
+#define STEP         (12)                                                       
 #define SMOOTH_SHOCK (17)
 
 //types of boundary conditions
@@ -42,26 +42,34 @@ const double chi0      = 25./4.*eta0;
 //set CFL number (simulation time resolution)
 #define CFL (0.1)
 
+//set domain boundaries
+#define X_MIN (-200)
+#define X_MAX (200)
+
 //set maximum number of timesteps
 #define max_timestep (1*1024+1)
 
 //save data to file every TS_STEP timesteps
 #define TS_STEP (10)
 
-//tolerance below which we use perfect fluid primitive solve in a
-//given cell rather than the BDNK primitive solve.  Ideally, the
-//perfect fluid primitive solve would only ever be used if the
-//BDNK solve is unstable at low resolution (in this case, perfect
-//fluid solve should give answers that are close).  If we have
-//sufficient resolution (or if the BDNK primitive solve is stable)
-//we should always use BDNK primitive solve.  
-//Set TOL < 0 to always use the BDNK primitive solve.
-#define TOL (-1)
-
-//choose the type of initial data from options GAUSSIAN, SHOCK (step
+//choose the type of initial data from options GAUSSIAN, STEP (step
 //function), and SMOOTH_SHOCK (approximate BDNK steady-state shock
 //solution)
 #define ID_TYPE (GAUSSIAN)
+
+//set parameters for GAUSSIAN ID; unused if ID != GAUSSIAN
+#define GAUSSIAN_AMPLITUDE (1)
+#define GAUSSIAN_MEAN      (0)
+#define GAUSSIAN_SPREAD    (25)
+#define GAUSSIAN_CONST     (1e-1)
+
+//set parameters for STEP ID; unused if ID != STEP
+#define STEP_EPS_L (1)
+#define STEP_EPS_R (0.1)
+
+//set parameters for SMOOTH_SHOCK ID; unused if ID != SMOOTH_SHOCK
+#define SMOOTH_SHOCK_EPS_L (1)
+#define SMOOTH_SHOCK_V_L   (0.8)
 
 //choose the type of boundary condition from options GHOST (ghost
 //cells; roughly, outflow conditions) and PERIODIC (periodic
@@ -76,6 +84,16 @@ const double chi0      = 25./4.*eta0;
 //file for each variable being output, and data in the file is
 //arranged such that the nth row contains the variable at timestep n.
 #define DIREC "low/"
+
+//tolerance below which we use perfect fluid primitive solve in a
+//given cell rather than the BDNK primitive solve.  Ideally, the
+//perfect fluid primitive solve would only ever be used if the
+//BDNK solve is unstable at low resolution (in this case, perfect
+//fluid solve should give answers that are close).  If we have
+//sufficient resolution (or if the BDNK primitive solve is stable)
+//we should always use BDNK primitive solve.  
+//Set TOL < 0 to always use the BDNK primitive solve.
+#define TOL (-1)
 
 /*======================compute derived parameters============================*/
 

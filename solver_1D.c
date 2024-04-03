@@ -171,39 +171,40 @@ double Dx(double arr[3][N], int n, int i)
 
 int set_initial_data()
 {
-    double x_min = -200.;
-    double x_max = 200.;
-    dx = (x_max-x_min)/(N-1.);
-    dt  = CFL * dx;
+    dx = (X_MAX-X_MIN)/(N-1.);
+    dt = CFL * dx;
 
     /*define epsL, epsR, vL, vR for steady-state shocks */
     double epsL, epsR, vL, vR, vTemp, eps;
     for(int i=0; i<N; i++)
     {
-        x[i] = x_min + i*dx;
+        x[i] = X_MIN + i*dx;
 
 #if ID_TYPE == GAUSSIAN
         /*Gaussian initial data.  Note the coefficient
          * and the constant added---without these, velocities
          * get too close to c and NANs appear*/ 
-        eps      = 1.*exp(-pow(x[i]-0.,2.)/25.) + 1e-1;
+        eps      = GAUSSIAN_AMPLITUDE
+                    *exp(-pow(x[i]-GAUSSIAN_MEAN,2.)
+                            /GAUSSIAN_SPREAD) 
+                    + GAUSSIAN_CONST;
         ux[0][i] = 0.;
 
 #elif ID_TYPE == STEP
         if(x[i] <= 0.)
         {
-            eps = 1.;
+            eps = STEP_EPS_L;
         }
         else
         {
-            eps = 0.1;
+            eps = STEP_EPS_R;
         }
         ux[0][i] = 0.;
 
 #elif ID_TYPE == SMOOTH_SHOCK
         /*use PF jump conditions to get a shock in its rest frame */
-        epsL      = 1.;
-        vL        = 0.8;
+        epsL      = SMOOTH_SHOCK_EPS_L;
+        vL        = SMOOTH_SHOCK_V_L;
         epsR      = (epsL-9.*vL*vL*epsL)/(3.*(-1.+vL*vL));
         vR        = 1./(3.*vL);
         eps       = (epsR-epsL)/2.*(erf(x[i]/10.)+1.)+epsL;
