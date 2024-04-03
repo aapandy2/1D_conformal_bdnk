@@ -12,10 +12,10 @@
 
 #define TOL (1e-14)
 
-#define SMOOTH (11)
-#define SHOCK (12)
+#define GAUSSIAN     (11)
+#define SHOCK        (12)
 #define SMOOTH_SHOCK (17)
-#define ID (SMOOTH)
+#define ID_TYPE      (GAUSSIAN)
 
 #define GHOST (20)
 #define PERIODIC (21)
@@ -72,12 +72,18 @@ const double eta0      = 1.*pow(eps0,0.25)/(3.*M_PI);
 const double lambda0   = 25./7.*eta0;
 const double chi0      = 25./4.*eta0;
 
-double T_tt0(double xi, double ux, double xicx, double uxcx, double xidot, double uxdot);
-double T_tx0(double xi, double ux, double xicx, double uxcx, double xidot, double uxdot);
-double T_xx0(double xi, double ux, double xicx, double uxcx, double xidot, double uxdot);
-double T_tt(double xi, double ux, double xicx, double uxcx, double xidot, double uxdot);
-double T_tx(double xi, double ux, double xicx, double uxcx, double xidot, double uxdot);
-double T_xx(double xi, double ux, double xicx, double uxcx, double xidot, double uxdot);
+double T_tt0(double xi, double ux, double xicx, double uxcx, double xidot, 
+             double uxdot);
+double T_tx0(double xi, double ux, double xicx, double uxcx, double xidot, 
+             double uxdot);
+double T_xx0(double xi, double ux, double xicx, double uxcx, double xidot, 
+             double uxdot);
+double T_tt(double xi, double ux, double xicx, double uxcx, double xidot, 
+            double uxdot);
+double T_tx(double xi, double ux, double xicx, double uxcx, double xidot, 
+            double uxdot);
+double T_xx(double xi, double ux, double xicx, double uxcx, double xidot, 
+            double uxdot);
 
 /*should return qL at x=i+1/2*/
 double WENO_reconst_qRx(double q[TL][N], int n, int i)
@@ -214,18 +220,25 @@ int set_initial_data()
     {
         x[i] = x_min + i*dx;
 
+#if ID_TYPE == GAUSSIAN
         /*Gaussian initial data.  Note the coefficient
          * and the constant added---without these, velocities
          * get too close to c and NANs appear*/ 
-        //eps = 1.*exp(-pow(x[i]-0.,2.)/25.) + 1e-1;
-        //if(x[i] <= 0.)
-        //{
-        //    eps = 1.;
-        //}
-        //else
-        //{
-        //    eps = 0.1;
-        //}
+        eps      = 1.*exp(-pow(x[i]-0.,2.)/25.) + 1e-1;
+        ux[0][i] = 0.;
+
+#elif ID_TYPE == STEP
+        if(x[i] <= 0.)
+        {
+            eps = 1.;
+        }
+        else
+        {
+            eps = 0.1;
+        }
+        ux[0][i] = 0.;
+
+#elif ID_TYPE == SMOOTH_SHOCK
         /*use PF jump conditions to get a shock in its rest frame */
         epsL      = 1.;
         vL        = 0.8;
@@ -234,9 +247,10 @@ int set_initial_data()
         eps       = (epsR-epsL)/2.*(erf(x[i]/10.)+1.)+epsL;
         vTemp     = (vL-vR)/2.*(1.-erf(x[i]/10.))+vR;
         ux[0][i]  = vTemp/sqrt(1.-vTemp*vTemp);
-        
+#endif
+       
+        //definition of xi is ln(eps) 
         xi[0][i] = log(eps);
-        //ux[0][i] = 0.;
 
         /*set dissipative tensors to zero (perfect fluid initial data) */
         Ttt[0][i] = T_tt(xi[0][i], ux[0][i], 0., 0., 0., 0.);
@@ -289,26 +303,30 @@ int set_ghost_cells(int n)
     return 0;
 }
 
-double compute_A(double XI, double UX, double xiP, double uxP, double xiD, double uxD)
+double compute_A(double XI, double UX, double xiP, double uxP, double xiD, 
+                 double uxD)
 {
     return ((chi0*pow(exp(XI),0.75)*(4*UX*uxD + 4*sqrt(1 + pow(UX,2))*uxP +
     3*(1 + pow(UX,2))*xiD + 3*UX*sqrt(1 + pow(UX,2))*xiP))/(4.*sqrt(1 +
     pow(UX,2))));
 }
 
-double compute_Qx(double XI, double UX, double xiP, double uxP, double xiD, double uxD)
+double compute_Qx(double XI, double UX, double xiP, double uxP, double xiD, 
+                  double uxD)
 {
     return ((pow(exp(XI),0.75)*lambda0*(4*sqrt(1 + pow(UX,2))*uxD + 4*UX*uxP +
     UX*sqrt(1 + pow(UX,2))*xiD + (1 + pow(UX,2))*xiP))/4.);
 }
 
-double compute_m2sxx(double XI, double UX, double xiP, double uxP, double xiD, double uxD)
+double compute_m2sxx(double XI, double UX, double xiP, double uxP, double xiD, 
+                     double uxD)
 {
     return ((-4*pow(exp(XI),0.75)*eta0*sqrt(1 + pow(UX,2))*(UX*uxD + sqrt(1 +
     pow(UX,2))*uxP))/3.);
 }
 
-double T_tt(double xi, double ux, double xicx, double uxcx, double xidot, double uxdot)
+double T_tt(double xi, double ux, double xicx, double uxcx, double xidot, 
+            double uxdot)
 {
     double A     = compute_A    (xi, ux, xicx, uxcx, xidot, uxdot);
     double Qx    = compute_Qx   (xi, ux, xicx, uxcx, xidot, uxdot);
@@ -321,12 +339,14 @@ double T_tt(double xi, double ux, double xicx, double uxcx, double xidot, double
     double m2etasigmatt = ux*m2etasigmatx/ut;
     double eps          = exp(xi);
 
-    double ans = eps*(ut*ut+Deltatt/3.) + A*(ut*ut+Deltatt/3.)+2.*Qt*ut+m2etasigmatt;
+    double ans = eps*(ut*ut+Deltatt/3.) + A*(ut*ut+Deltatt/3.) + 2.*Qt*ut 
+                 + m2etasigmatt;
 
     return ans;
 }
 
-double T_tt0(double xi, double ux, double xicx, double uxcx, double xidot, double uxdot)
+double T_tt0(double xi, double ux, double xicx, double uxcx, double xidot, 
+             double uxdot)
 {
     double ut           = sqrt(1.+ux*ux);
     double Deltatt      = -1. + ut*ut;
@@ -337,7 +357,8 @@ double T_tt0(double xi, double ux, double xicx, double uxcx, double xidot, doubl
     return ans;
 }
 
-double T_tx(double xi, double ux, double xicx, double uxcx, double xidot, double uxdot)
+double T_tx(double xi, double ux, double xicx, double uxcx, double xidot, 
+            double uxdot)
 {
     double A     = compute_A    (xi, ux, xicx, uxcx, xidot, uxdot);
     double Qx    = compute_Qx   (xi, ux, xicx, uxcx, xidot, uxdot);
@@ -350,12 +371,14 @@ double T_tx(double xi, double ux, double xicx, double uxcx, double xidot, double
     double m2etasigmatt = ux*m2etasigmatx/ut;
     double eps          = exp(xi);
 
-    double ans = eps*(ut*ux+Deltatx/3.) + A*(ut*ux+Deltatx/3.) +Qt*ux + ut*Qx + m2etasigmatx;
+    double ans = eps*(ut*ux+Deltatx/3.) + A*(ut*ux+Deltatx/3.) +Qt*ux + ut*Qx 
+                 + m2etasigmatx;
 
     return ans;
 }
 
-double T_xx(double xi, double ux, double xicx, double uxcx, double xidot, double uxdot)
+double T_xx(double xi, double ux, double xicx, double uxcx, double xidot, 
+            double uxdot)
 {
     double A     = compute_A    (xi, ux, xicx, uxcx, xidot, uxdot);
     double Qx    = compute_Qx   (xi, ux, xicx, uxcx, xidot, uxdot);
@@ -373,7 +396,8 @@ double T_xx(double xi, double ux, double xicx, double uxcx, double xidot, double
     return ans;
 }
 
-double T_tx0(double xi, double ux, double xicx, double uxcx, double xidot, double uxdot)
+double T_tx0(double xi, double ux, double xicx, double uxcx, double xidot, 
+             double uxdot)
 {
     double ut           = sqrt(1.+ux*ux);
     double Deltatx      = ut*ux;
@@ -384,7 +408,8 @@ double T_tx0(double xi, double ux, double xicx, double uxcx, double xidot, doubl
     return ans;
 }
 
-double T_xx0(double xi, double ux, double xicx, double uxcx, double xidot, double uxdot)
+double T_xx0(double xi, double ux, double xicx, double uxcx, double xidot, 
+             double uxdot)
 {
     double ut           = sqrt(1.+ux*ux);
     double Deltaxx      = 1. + ux*ux;
@@ -395,7 +420,8 @@ double T_xx0(double xi, double ux, double xicx, double uxcx, double xidot, doubl
     return ans;
 }
 
-double compute_xiD(int n, int i, double XI, double UX, double xiP, double uxP, double T00, double T01)
+double compute_xiD(int n, int i, double XI, double UX, double xiP, double uxP, 
+                   double T00, double T01)
 {
     double ch = chi0/eta0;
     double l  = lambda0/eta0;
@@ -446,7 +472,8 @@ double compute_xiD(int n, int i, double XI, double UX, double xiP, double uxP, d
     + 4*(ch*(-3 + l) - l)*pow(UX,4))));
 }
 
-double compute_uxD(int n, int i, double XI, double UX, double xiP, double uxP, double T00, double T01)
+double compute_uxD(int n, int i, double XI, double UX, double xiP, double uxP, 
+                   double T00, double T01)
 {
     double ch = chi0/eta0;
     double l  = lambda0/eta0;
@@ -515,13 +542,15 @@ double flux_x(int n, int i, int COMP)
     {
         iphL = T_tx(xiL, uxL, xicxL, uxcxL, xiDL, uxDL);
         iphR = T_tx(xiR, uxR, xicxR, uxcxR, xiDR, uxDR);
-        jump_iph = T_tt(xiR, uxR, xicxR, uxcxR, xiDR, uxDR) - T_tt(xiL, uxL, xicxL, uxcxL, xiDL, uxDL);
+        jump_iph = T_tt(xiR, uxR, xicxR, uxcxR, xiDR, uxDR) 
+                   - T_tt(xiL, uxL, xicxL, uxcxL, xiDL, uxDL);
     }
     else
     {
         iphL = T_xx(xiL, uxL, xicxL, uxcxL, xiDL, uxDL); 
         iphR = T_xx(xiR, uxR, xicxR, uxcxR, xiDR, uxDR);
-        jump_iph = T_tx(xiR, uxR, xicxR, uxcxR, xiDR, uxDR) - T_tx(xiL, uxL, xicxL, uxcxL, xiDL, uxDL);
+        jump_iph = T_tx(xiR, uxR, xicxR, uxcxR, xiDR, uxDR) 
+                   - T_tx(xiL, uxL, xicxL, uxcxL, xiDL, uxDL);
     }
 
     /*define KT speed (speed of light) and jump at i+1/2 */
