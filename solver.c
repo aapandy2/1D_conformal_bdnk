@@ -699,7 +699,7 @@ int main()
 {
     set_initial_data();
 
-    for(int n=0; n<max_timestep; n++)
+    for(int n=0; n<MAX_TIMESTEP; n++)
     {
         Heun_solve_system(0);
 

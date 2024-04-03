@@ -46,8 +46,10 @@ const double chi0      = 25./4.*eta0;
 #define X_MIN (-200)
 #define X_MAX (200)
 
-//set maximum number of timesteps
-#define max_timestep (1*1024+1)
+//set MAX_TIMESTEP.  This is set up so that doubling RES_MULTIPLE
+//doubles the resolution both in space and in time
+#define BASE_NUM_TIMESTEP (1024)
+#define MAX_TIMESTEP      (RES_MULTIPLE*BASE_NUM_TIMESTEP+1)
 
 //save data to file every TS_STEP timesteps
 #define TS_STEP (10)
@@ -84,7 +86,7 @@ const double chi0      = 25./4.*eta0;
 //file for each variable being output, and data in the file is
 //arranged such that the nth row contains the variable at timestep n.
 //NOTE: this folder must already exist; if not, the code will segfault
-#define DIREC "low/"
+#define DIREC ("datafiles/")
 
 //tolerance below which we use perfect fluid primitive solve in a
 //given cell rather than the BDNK primitive solve.  Ideally, the
