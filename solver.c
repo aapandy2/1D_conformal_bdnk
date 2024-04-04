@@ -1,3 +1,12 @@
+/* Simple solver for the conformal BDNK equations in slab symmetry.
+ * 
+ * Written by Alex Pandya, last updated 4/4/2024; numerical method
+ * described in:
+ * [1] https://arxiv.org/abs/2201.12317
+ *
+ * Choose options for the simulation in this file.
+* */
+
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
