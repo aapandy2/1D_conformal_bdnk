@@ -727,7 +727,10 @@ int save_t_to_file()
 
     for(int n=0; n<MAX_TIMESTEP; n++)
     {
-        fprintf(farr, "%e\n", n*dt);
+        if(n % TS_STEP == 0)
+        {
+            fprintf(farr, "%e\n", n*dt);
+        }
     }
     fprintf(farr, "\n");
     fclose(farr);
